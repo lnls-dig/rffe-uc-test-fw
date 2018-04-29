@@ -18,10 +18,16 @@
 extern "C" void mbed_reset();
 
 // Hardware Initialization - MBED
+char ip[4],mask[4],gateway[4],mac[6];
+
+extern "C" void mbed_mac_address(char *s) {
+    // Write your code to get the MAC address from the 25AA02E48 into mac[6]
+    memcpy(s, mac, 6);
+}
+
 
 // MBED pins
 RawSerial pc(P0_2, P0_3); // Serial USB port. (NOTE: All printf() calls are redirected to this port)
-
 DigitalOut led1(P1_18);
 DigitalOut led2(P1_20);
 DigitalOut led3(P1_21);
@@ -191,7 +197,6 @@ int feram_test( void )
     uint8_t err = 1;
     uint16_t err_write = 0, err_read = 0;
     uint8_t data[2];
-    uint8_t mac[6];
     uint8_t test_pattern[256];
 
     /* Fill test pattern array with random numbers */
@@ -200,30 +205,6 @@ int feram_test( void )
     }
 
     printf("\n\rStarting FeRAM test\n\r");
-
-#if 0
-    if (sw2.read() == 0) {
-        mac[0] = 0xD8;
-        mac[1] = 0x80;
-        mac[2] = 0x38;
-        mac[3] = 0xA9;
-        mac[4] = 0x88;
-        mac[5] = 0x2E;
-
-        for (byte = 0x0; byte < sizeof(mac); byte++) {
-            addr = (slave_id << 4);
-            data[0] = byte;
-            data[1] = mac[byte];
-            err_write += feram_i2c.write(addr, (char *)data, 2);
-        }
-    }
-#endif
-
-    /* Read stored MAC address and save it */
-    addr = (slave_id << 4);
-    data[0] = 0x0;
-    feram_i2c.write(addr, (char *)data, 1);
-    err_read += feram_i2c.read(addr, (char *)mac, 6);
 
     printf("Writing test pattern...");
     /* Write test pattern on the FeRAM */
@@ -277,14 +258,6 @@ int feram_test( void )
             data[1] = test_pattern[byte];
             feram_i2c.write(addr, (char *)data, 2);
         }
-    }
-
-    /* Restore MAC address info to FeRAM */
-    for (byte = 0x0; byte < sizeof(mac); byte++) {
-        addr = (slave_id << 4);
-        data[0] = byte;
-        data[1] = mac[byte];
-        err_write += feram_i2c.write(addr, (char *)data, 2);
     }
 
     return err;
