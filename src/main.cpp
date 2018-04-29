@@ -290,7 +290,7 @@ int feram_test( void )
     return err;
 }
 
-uint8_t feram_store_mac( void )
+uint8_t feram_store_eth_info( void )
 {
     I2C feram_i2c( P0_19, P0_20 );
 
@@ -301,48 +301,79 @@ uint8_t feram_store_mac( void )
     const uint8_t slave_id = 0xA;
     uint8_t addr;
     uint16_t byte;
-    uint8_t err = 1;
-    uint16_t err_write = 0, err_read = 0;
+    uint8_t err = 0;
     uint8_t data[2];
 
-    uint8_t mac[6];
-
-
-    printf("\n\r Reading MAC Address...\n\r");
-
-    addr = (slave_id << 4);
-    data[0] = 0xFA;
-    feram_i2c.write(addr, (char *)data, 1);
-
-    err_read += feram_i2c.read(addr, (char *)mac, 6);
-
-    if (err_read == 0) {
-        printf("\t-> Pass!\n\r");
-        printf("MAC:");
-        for (byte = 0; byte < sizeof(mac); byte++) {
-            printf(" 0x%X", mac[byte]);
+    /* Read addresses from UART */
+    printf("Insert MAC:\r\n");
+    scanf("%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx",&mac[0],&mac[1],&mac[2],&mac[3],&mac[4],&mac[5]);
+    for (uint8_t t = 0; t < 6; t++) {
+        printf("%02X", mac[t]);
+        if (t != 5) {
+            printf(":");
         }
-        printf("\n\r");
-    } else {
-        printf("\t-> Fail with %d errors on I2C read!\n\r", err_read);
-        err = 0;
     }
+    led1 = 1;
 
-    printf("\n\r Writing MAC to FeRAM at 0x0...\n\r");
+    printf("\n\rInsert IP:\r\n");
+    scanf("%hhd.%hhd.%hhd.%hhd",&ip[0],&ip[1],&ip[2],&ip[3]);
+    for (uint8_t t = 0; t < 4; t++) {
+        printf("%d", ip[t]);
+        if (t != 3) {
+            printf(".");
+        }
+    }
+    led2 = 1;
 
-    /* Write test pattern on the FeRAM */
+    printf("\n\rInsert Mask:\r\n");
+    scanf("%hhd.%hhd.%hhd.%hhd",&mask[0],&mask[1],&mask[2],&mask[3]);
+    for (uint8_t t = 0; t < 4; t++) {
+        printf("%d", mask[t]);
+        if (t != 3) {
+            printf(".");
+        }
+    }
+    led3 = 1;
+
+    printf("\n\rInsert Gateway:\r\n");
+    scanf("%hhd.%hhd.%hhd.%hhd",&gateway[0],&gateway[1],&gateway[2],&gateway[3]);
+    for (uint8_t t = 0; t < 4; t++) {
+        printf("%d", gateway[t]);
+        if (t != 3) {
+            printf(".");
+        }
+    }
+    led4 = 1;
+    printf("\n\r");
+
+    printf("\n\r Writing info to FeRAM...\n\r");
+
     for (byte = 0x0; byte < sizeof(mac); byte++) {
         addr = (slave_id << 4);
         data[0] = byte;
         data[1] = mac[byte];
-        err_write += feram_i2c.write(addr, (char *)data, 2);
+        err += feram_i2c.write(addr, (char *)data, 2);
     }
 
-    if (err_write == 0) {
-        printf("\t-> Pass!\n\r");
-    } else {
-        printf("\t-> Fail with %d errors on I2C write!\n\r", err_read);
-        err = 0;
+    for (byte = 0x0; byte < sizeof(ip); byte++) {
+        addr = (slave_id << 4);
+        data[0] = byte+0x10;
+        data[1] = ip[byte];
+        err += feram_i2c.write(addr, (char *)data, 2);
+    }
+
+    for (byte = 0x0; byte < sizeof(mask); byte++) {
+        addr = (slave_id << 4);
+        data[0] = byte+0x20;
+        data[1] = mask[byte];
+        err += feram_i2c.write(addr, (char *)data, 2);
+    }
+
+    for (byte = 0x0; byte < sizeof(gateway); byte++) {
+        addr = (slave_id << 4);
+        data[0] = byte+0x30;
+        data[1] = gateway[byte];
+        err += feram_i2c.write(addr, (char *)data, 2);
     }
 
     return err;
@@ -536,15 +567,27 @@ int main( void )
     pc.baud(115200);
 
     printf("Starting rffe-uc tests!\n\r");
+    printf("Send the char 's' to start the tests or 'r' to store the deploy information in the FERAM!\n\r");
 
     int err = 0;
 
-    err += ((leds_test() & 1) << 0);
-    err += ((GPIO_loopback_test() & 1) << 1);
-    err += ((power_supply_test() & 1) << 2);
-    err += ((feram_test() & 1) << 3);
-    err += ((ethernet_test() & 1) << 4);
-    //feram_store_mac();
+    char t = 0;
+
+    while( t != 's' && t != 'r') {
+        t = pc.getc();
+    }
+
+    if (t == 's') {
+        err += ((feram_test() & 1) << 0);
+        err += ((GPIO_loopback_test() & 1) << 1);
+        err += ((power_supply_test() & 1) << 2);
+        err += ((leds_test() & 1) << 3);
+        err += ((ethernet_test() & 1) << 4);
+    } else if (t == 'r') {
+        err += feram_store_eth_info();
+    }
+
+    printf("\n\r");
 
     if (err == 0) {
         printf("All tests passed!\n\r");
