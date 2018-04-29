@@ -13,7 +13,6 @@ public:
     }
 
     int cfg_eth();
-    int test_w(uint8_t addr, uint8_t data);
 private:
     int _read(uint8_t addr, char *buffer, size_t len);
     int _write(uint8_t addr, char *buffer, size_t len);

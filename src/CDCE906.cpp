@@ -18,8 +18,8 @@ int CDCE906::cfg_eth( void )
     cfg[10] = 0x0;
     cfg[11] = 0x0;
     cfg[12] = 0x0;
-    cfg[13] = 2; /* P0 div */
-    cfg[14] = 1;  /* P1 div */
+    cfg[13] = 0x2; /* P0 div */
+    cfg[14] = 0x1;  /* P1 div */
     cfg[15] = 0x1; /* P2 div */
     cfg[16] = 0x1; /* P3 div */
     cfg[17] = 0x1; /* P4 div */
@@ -63,18 +63,6 @@ int CDCE906::_read(uint8_t addr, char *buffer, size_t len)
     if (err == 0) {
         err = _i2c.read(_sladdr, buffer, len);
     }
-
-    return err;
-}
-
-int CDCE906::test_w(uint8_t addr, uint8_t data)
-{
-    char buffer[2];
-    int err;
-
-    buffer[0] = addr;
-    buffer[1] = data;
-    err = _i2c.write(_sladdr, buffer, 2);
 
     return err;
 }
