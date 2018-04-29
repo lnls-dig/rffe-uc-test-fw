@@ -422,17 +422,57 @@ int ethernet_test( void )
     printf("Configuring 50MHz PLL\n\r");
     pll_cfg();
 
-#if defined(ETH_DHCP)
-    err = net.set_dhcp(true);
-#else
-#if defined(ETH_FIXIP)
-    err = net.set_network(ETH_IP,ETH_MASK,ETH_GATEWAY);
-#else
-#error "No Ethernet addressing mode selected! Please choose between DHCP or Fixed IP!"
-#endif
-#endif
+    /* Read addresses from UART */
+    printf("Insert MAC:\r\n");
+    scanf("%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx",&mac[0],&mac[1],&mac[2],&mac[3],&mac[4],&mac[5]);
+    for (uint8_t t = 0; t < 6; t++) {
+        printf("%02X", mac[t]);
+        if (t != 5) {
+            printf(":");
+        }
+    }
+    led1 = 1;
 
-    printf("Trying to initialize ETH interface...");
+    printf("\n\rInsert IP:\r\n");
+    scanf("%hhd.%hhd.%hhd.%hhd",&ip[0],&ip[1],&ip[2],&ip[3]);
+    for (uint8_t t = 0; t < 4; t++) {
+        printf("%d", ip[t]);
+        if (t != 3) {
+            printf(".");
+        }
+    }
+    led2 = 1;
+
+    printf("\n\rInsert Mask:\r\n");
+    scanf("%hhd.%hhd.%hhd.%hhd",&mask[0],&mask[1],&mask[2],&mask[3]);
+    for (uint8_t t = 0; t < 4; t++) {
+        printf("%d", mask[t]);
+        if (t != 3) {
+            printf(".");
+        }
+    }
+    led3 = 1;
+
+    printf("\n\rInsert Gateway:\r\n");
+    scanf("%hhd.%hhd.%hhd.%hhd",&gateway[0],&gateway[1],&gateway[2],&gateway[3]);
+    for (uint8_t t = 0; t < 4; t++) {
+        printf("%d", gateway[t]);
+        if (t != 3) {
+            printf(".");
+        }
+    }
+    led4 = 1;
+    printf("\n\r");
+
+    char ip_str[16], gateway_str[16], mask_str[16];
+
+    sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+    sprintf(gateway_str, "%d.%d.%d.%d", gateway[0], gateway[1], gateway[2], gateway[3]);
+    sprintf(mask_str, "%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3]);
+
+    err = net.set_network(ip_str,mask_str,gateway_str);
+
+    printf("Initializing ETH stack...");
 
     do {
         err = net.connect();
