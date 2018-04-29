@@ -190,7 +190,7 @@ unsigned int random( void )
     unsigned int x = 0;
     unsigned int iRandom = 0;
 
-    AnalogIn analog(p15);
+    AnalogIn analog(p17);
 
     for (x = 0; x <= 32; x += 2)
     {
