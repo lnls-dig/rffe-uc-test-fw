@@ -114,12 +114,12 @@ int GPIO_loopback_test( void )
     printf("\nStarting GPIO Loopback test\n\r");
 
     for( t = 0; t < sizeof(loop_pair)/sizeof(loop_pair[0]); t++) {
-        printf("Loopback pair %d: ", t);
+        printf("GPIO Loopback pair [%s][%s]:", pin_name_str[loop_pair[t][0]].c_str(), pin_name_str[loop_pair[t][1]].c_str() );
         if (loopback_check(loop_pair[t][0], loop_pair[t][1]) == 0) {
-            printf("\t-> Pass!\n\r");
+            printf("\tPass!\n\r");
         } else {
             err = 1;
-            printf("\t-> Fail!\n\r");
+            printf("\tFail!\n\r");
         }
     }
 
@@ -147,20 +147,20 @@ int power_supply_test( void )
     printf("\nStarting Power Supply level test\n\r");
 
     adc_read = adc_3v3.read()*3.3*2;
-    printf("Power Supply 3.3v read: %f", adc_read);
+    printf("Power Supply 3.3v read: %.4f", adc_read);
     if ( (adc_read <= PS_TEST_3V3_HIGH) && (adc_read >= PS_TEST_3V3_LOW) ) {
-        printf("\t-> Pass!\n\r");
+        printf("\tPass!\n\r");
     } else {
-        printf("\t-> Fail!\n\r");
+        printf("\tFail!\n\r");
         err = 1;
     }
 
     adc_read = adc_5v.read()*3.3*2;
-    printf("Power Supply 5.0v read: %f", adc_read);
+    printf("Power Supply 5.0v read: %.4f", adc_read);
     if ( (adc_read <= PS_TEST_5V_HIGH) && (adc_read >= PS_TEST_5V_LOW) ) {
-        printf("\t-> Pass!\n\r");
+        printf("\tPass!\n\r");
     } else {
-        printf("\t-> Fail!\n\r");
+        printf("\tFail!\n\r");
         err = 1;
     }
 
@@ -200,8 +200,13 @@ int feram_test( void )
     uint8_t test_pattern[256];
 
     /* Fill test pattern array with random numbers */
+    printf("FeRAM Random pattern:\n\r");
     for (byte = 0; byte < sizeof(test_pattern); byte++) {
+        if ((byte%8) == 0) {
+            printf("\n\r[RANDOM]");
+        }
         test_pattern[byte] = random()%256;
+        printf("%02X ", test_pattern[byte]);
     }
 
     printf("\n\rStarting FeRAM test\n\r");
@@ -216,16 +221,15 @@ int feram_test( void )
             err_write += feram_i2c.write(addr, (char *)data, 2);
         }
     }
-
     if (err_write == 0) {
-        printf("\t-> Pass!\n\r");
+        printf("\tPass!\n\r");
         err = 0;
     } else {
-        printf("\t-> Fail with %d errors on I2C write\n\r", err_write);
+        printf("\tFail!\n\r");
         return 1;
     }
 
-    printf("Reading back test pattern...");
+    printf("Reading FeRAM pattern...\n\r");
     /* Check test pattern */
     for (page = 0; page <= 7; page++) {
         for (byte = 0; byte <= 0xFF; byte++) {
@@ -239,12 +243,12 @@ int feram_test( void )
             }
         }
     }
-
+    printf("[FERAM]");
     if (err_read == 0) {
-        printf("\t-> Pass!\n\r");
+        printf("\tPass!\n\r");
         err = 0;
     } else {
-        printf("\t-> Fail with %d errors on I2C read!\n\r", err_read);
+        printf("\tFail!\n\r");
         return 1;
     }
 
@@ -377,17 +381,20 @@ int leds_test( void )
         delete led;
     }
 
+    printf("Starting LEDs test...\n\r");
 
     for( uint8_t t = 0; t < sizeof(leds)/sizeof(leds[0]); t++) {
-        printf("LED test: LED%d", t+1);
         led = new DigitalOut(leds[t]);
 
         *led = 1;
         Thread::wait(500);
-        if ((ldr.read()*3.3) < LDR_LIGHT_THRESHOLD) {
-            printf("\t-> Pass!\n\r");
+        float ldr_read = ldr.read()*3.3;
+
+        printf("[LED] %d: %.4f", t+1, ldr_read);
+        if (ldr_read < LDR_LIGHT_THRESHOLD) {
+            printf("\tPass!\n\r");
         } else {
-            printf("\t-> Fail!\n\r");
+            printf("\tFail!\n\r");
             err = 1;
         }
 
@@ -484,9 +491,9 @@ int ethernet_test( void )
     } while ( (err != 0) && (t <= 5) );
 
     if ( err == 0 ) {
-        printf("\t-> Pass!\n\r");
+        printf("\tPass!\n\r");
     } else {
-        printf("\t-> Fail!\n\r");
+        printf("\tFail!\n\r");
         return 1;
     }
 
@@ -505,13 +512,14 @@ int ethernet_test( void )
     recv_sz = client.recv(&buf[0], sizeof(msg));
     err = 1;
     if (recv_sz > 0 ) {
+        printf("Received: \"%s\"", buf);
         if( strcmp((char *)msg, (char *)buf) == 0 ) {
-            printf("Received correct message via ethernet -> Pass!\n\r");
+            printf("\tPass!\n\r");
             err = 0;
         } else {
             /* Add terminating char to prevent gargabe print */
             buf[9] = 0;
-            printf("Received \"%s\" expected \"%s\" -> Fail!\n\r", buf, msg);
+            printf("\tFail!\n\r");
             /* clear buffer */
             memset(buf, 0, sizeof(buf));
         }
@@ -563,12 +571,13 @@ int main( void )
     printf("\n\r");
 
     if (err == 0) {
-        printf("All tests passed!\n\r");
+        printf("Board tests passed!\n\r");
         blink.attach(&blink_callback, 0.5);
     } else {
         printf("Board tests failed!\n\r");
     }
 
+    printf("\n\rEnd of tests!\n\r");
 
     while(1);
 }
