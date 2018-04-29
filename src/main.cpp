@@ -565,6 +565,11 @@ int main( void )
     //Init serial port for info printf
     pc.baud(115200);
 
+    led1 = 0;
+    led2 = 0;
+    led3 = 0;
+    led4 = 0;
+
     printf("Starting rffe-uc tests!\n\r");
     printf("Send the char 's' to start the tests or 'r' to store the deploy information in the FERAM!\n\r");
 
