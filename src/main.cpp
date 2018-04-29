@@ -7,6 +7,8 @@
 #include "TCPSocket.h"
 #include "lpc_phy.h"
 #include "CDCE906.h"
+#include <map>
+#include <string>
 
 #define DP8_SPEED10MBPS (1 << 1)    /**< 1=10MBps speed */
 #define DP8_VALID_LINK  (1 << 0)    /**< 1=Link active */
@@ -37,10 +39,26 @@ DigitalIn sw2(P2_11);
 DigitalIn sw3(P2_12);
 DigitalIn sw4(P2_13);
 
-bool get_eth_link_status(void)
-{
-    return (lpc_mii_read_data() & DP8_VALID_LINK) ? true : false;
-}
+std::map<PinName, std::string> pin_name_str = {
+    {P0_0, "P0_0"},
+    {P0_1, "P0_1"},
+    {P0_6, "P0_6"},
+    {P0_10, "P0_10"},
+    {P0_11, "P0_11"},
+    {P0_16, "P0_16"},
+    {P0_25, "P0_25"},
+    {P0_26, "P0_26"},
+    {P0_29, "P0_29"},
+    {P0_30, "P0_30"},
+    {P1_30, "P1_30"},
+    {P1_31, "P1_31"},
+    {P2_0, "P2_0"},
+    {P2_1, "P2_1"},
+    {P2_2, "P2_2"},
+    {P2_3, "P2_3"},
+    {P2_4, "P2_4"},
+    {P2_5, "P2_5"},
+};
 
 int loopback_check( PinName n0, PinName n1 )
 {
@@ -100,15 +118,15 @@ int GPIO_loopback_test( void )
     uint8_t err = 0;
     uint8_t t;
     PinName loop_pair[9][2] = {
-        {p8,p14},
-        {p9,p10},
-        {p17,p18},
-        {p19,p20},
-        {p21,p22},
-        {p23,p24},
-        {p25,p26},
-        {P0_29,p27},
-        {P0_30,p28}
+        {P0_6,P0_16},
+        {P0_0,P0_1},
+        {P0_25,P0_26},
+        {P1_30,P1_31},
+        {P2_5,P2_4},
+        {P2_3,P2_2},
+        {P2_1,P2_0},
+        {P0_29,P0_11},
+        {P0_30,P0_10}
     };
 
     printf("\nStarting GPIO Loopback test\n\r");
