@@ -493,15 +493,16 @@ int ethernet_test( void )
     led4 = 1;
     printf("\n\r");
 
+    printf("Initializing ETH stack...\n\r");
+
     char ip_str[16], gateway_str[16], mask_str[16];
 
     sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
     sprintf(gateway_str, "%d.%d.%d.%d", gateway[0], gateway[1], gateway[2], gateway[3]);
     sprintf(mask_str, "%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3]);
 
-    err = net.set_network(ip_str,mask_str,gateway_str);
 
-    printf("Initializing ETH stack...");
+    err = net.set_network(ip_str,mask_str,gateway_str);
 
     do {
         err = net.connect();
