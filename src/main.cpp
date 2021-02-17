@@ -285,27 +285,40 @@ int feram_test( void )
     return err;
 }
 
-uint8_t feram_store_eth_info( void )
+int check_eeprom_mac(char* mac)
 {
-    I2C feram_i2c( P0_19, P0_20 );
+    I2C eeprom_i2c(P0_27, P0_28);
+    const uint8_t slave_id = 0xA0;
+    char data[1];
+    int ret;
 
-    DigitalOut feram_wp( P0_21 );
+    data[0] = 0xFA;
+    ret = eeprom_i2c.write(slave_id, data, 1);
+    if (ret == 0)
+        ret = eeprom_i2c.read(slave_id, mac, 6);
 
-    feram_wp = 0;
+    return ret;
+}
 
-    const uint8_t slave_id = 0xA;
-    uint8_t addr;
-    uint16_t byte;
-    uint8_t err = 0;
-    uint8_t data[2];
+int get_netconfig(void)
+{
+    int ret;
 
-    /* Read addresses from UART */
-    printf("Insert MAC:\r\n");
-    scanf("%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx",&mac[0],&mac[1],&mac[2],&mac[3],&mac[4],&mac[5]);
-    for (uint8_t t = 0; t < 6; t++) {
-        printf("%02X", mac[t]);
-        if (t != 5) {
-            printf(":");
+    ret = check_eeprom_mac(mac);
+
+    if (ret == 0)
+    {
+        printf("24AA02E48 EEPROM detected!\r\nMAC Address: %02X:%02X:%02X:%02X:%02X:%02X\r\n",
+               mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    } else {
+        /* Read addresses from UART */
+        printf("Insert MAC:\r\n");
+        scanf("%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx",&mac[0],&mac[1],&mac[2],&mac[3],&mac[4],&mac[5]);
+        for (uint8_t t = 0; t < 6; t++) {
+            printf("%02X", mac[t]);
+            if (t != 5) {
+                printf(":");
+            }
         }
     }
     led1 = 1;
@@ -339,9 +352,24 @@ uint8_t feram_store_eth_info( void )
         }
     }
     led4 = 1;
-    printf("\r\n");
+    return 0;
+}
 
-    printf("\r\n Writing info to FeRAM...\r\n");
+uint8_t feram_store_eth_info( void )
+{
+    I2C feram_i2c( P0_19, P0_20 );
+
+    DigitalOut feram_wp( P0_21 );
+
+    feram_wp = 0;
+
+    const uint8_t slave_id = 0xA;
+    uint8_t addr;
+    uint8_t err = 0;
+    uint16_t byte;
+    uint8_t data[2];
+
+    printf("\r\nWriting info to FeRAM...\r\n");
 
     for (byte = 0x0; byte < sizeof(mac); byte++) {
         addr = (slave_id << 4);
@@ -451,48 +479,6 @@ int ethernet_test( void )
     printf("Configuring 50MHz PLL\r\n");
     pll_cfg();
 
-    /* Read addresses from UART */
-    printf("Insert MAC:\r\n");
-    scanf("%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx",&mac[0],&mac[1],&mac[2],&mac[3],&mac[4],&mac[5]);
-    for (uint8_t t = 0; t < 6; t++) {
-        printf("%02X", mac[t]);
-        if (t != 5) {
-            printf(":");
-        }
-    }
-    led1 = 1;
-
-    printf("\r\nInsert IP:\r\n");
-    scanf("%hhd.%hhd.%hhd.%hhd",&ip[0],&ip[1],&ip[2],&ip[3]);
-    for (uint8_t t = 0; t < 4; t++) {
-        printf("%d", ip[t]);
-        if (t != 3) {
-            printf(".");
-        }
-    }
-    led2 = 1;
-
-    printf("\r\nInsert Mask:\r\n");
-    scanf("%hhd.%hhd.%hhd.%hhd",&mask[0],&mask[1],&mask[2],&mask[3]);
-    for (uint8_t t = 0; t < 4; t++) {
-        printf("%d", mask[t]);
-        if (t != 3) {
-            printf(".");
-        }
-    }
-    led3 = 1;
-
-    printf("\r\nInsert Gateway:\r\n");
-    scanf("%hhd.%hhd.%hhd.%hhd",&gateway[0],&gateway[1],&gateway[2],&gateway[3]);
-    for (uint8_t t = 0; t < 4; t++) {
-        printf("%d", gateway[t]);
-        if (t != 3) {
-            printf(".");
-        }
-    }
-    led4 = 1;
-    printf("\r\n");
-
     printf("Initializing ETH stack...\r\n");
 
     char ip_str[16], gateway_str[16], mask_str[16];
@@ -587,8 +573,11 @@ int main( void )
         err += ((GPIO_loopback_test() & 1) << 1);
         err += ((power_supply_test() & 1) << 2);
         err += ((leds_test() & 1) << 3);
+        err += get_netconfig();
         err += ((ethernet_test() & 1) << 4);
+        err += feram_store_eth_info();
     } else if (t == 'r') {
+        err += get_netconfig();
         err += feram_store_eth_info();
     }
 
