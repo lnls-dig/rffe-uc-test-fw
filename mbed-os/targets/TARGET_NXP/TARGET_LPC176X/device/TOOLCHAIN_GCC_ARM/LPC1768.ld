@@ -169,4 +169,6 @@ SECTIONS
         *(AHBSRAM1)
         Image$$RW_IRAM3$$ZI$$Limit = .;
     } > ETH_RAM
+
+	__VectorChecksum = 0 - (__StackTop + Reset_Handler + NMI_Handler + HardFault_Handler + MemManage_Handler + BusFault_Handler + UsageFault_Handler + 6 /* Add 6 to the sum to compensate for the lacking of the less significant bit (thumb mode) */);
 }

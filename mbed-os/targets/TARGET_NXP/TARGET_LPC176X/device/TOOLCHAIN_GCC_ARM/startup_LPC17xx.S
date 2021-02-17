@@ -39,6 +39,7 @@
 #endif
     .globl    __StackTop
     .globl    __StackLimit
+    .globl    __VectorChecksum
 __StackLimit:
     .space    Stack_Size
     .size __StackLimit, . - __StackLimit
@@ -71,7 +72,7 @@ __isr_vector:
     .long    MemManage_Handler     /* MPU Fault Handler */
     .long    BusFault_Handler      /* Bus Fault Handler */
     .long    UsageFault_Handler    /* Usage Fault Handler */
-    .long    0                     /* Reserved */
+    .long    __VectorChecksum      /* Vector Checksum */
     .long    0                     /* Reserved */
     .long    0                     /* Reserved */
     .long    0                     /* Reserved */
