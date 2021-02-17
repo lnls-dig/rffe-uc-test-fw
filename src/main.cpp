@@ -129,19 +129,19 @@ int GPIO_loopback_test( void )
         {P0_30,P0_10}
     };
 
-    printf("\nStarting GPIO Loopback test\n\r");
+    printf("\r\nStarting GPIO Loopback test\r\n");
 
     for( t = 0; t < sizeof(loop_pair)/sizeof(loop_pair[0]); t++) {
         printf("GPIO Loopback pair [%s][%s]:", pin_name_str[loop_pair[t][0]].c_str(), pin_name_str[loop_pair[t][1]].c_str() );
         if (loopback_check(loop_pair[t][0], loop_pair[t][1]) == 0) {
-            printf("\tPass!\n\r");
+            printf("\tPass!\r\n");
         } else {
             err = 1;
-            printf("\tFail!\n\r");
+            printf("\tFail!\r\n");
         }
     }
 
-    printf("\n\r");
+    printf("\r\n");
     return err;
 }
 
@@ -162,23 +162,23 @@ int power_supply_test( void )
     AnalogIn adc_5v(p16);
     float adc_read = 0;
 
-    printf("\nStarting Power Supply level test\n\r");
+    printf("\r\nStarting Power Supply level test\r\n");
 
     adc_read = adc_3v3.read()*3.3*2;
     printf("Power Supply 3.3v read: %.4f", adc_read);
     if ( (adc_read <= PS_TEST_3V3_HIGH) && (adc_read >= PS_TEST_3V3_LOW) ) {
-        printf("\tPass!\n\r");
+        printf("\tPass!\r\n");
     } else {
-        printf("\tFail!\n\r");
+        printf("\tFail!\r\n");
         err = 1;
     }
 
     adc_read = adc_5v.read()*3.3*2;
     printf("Power Supply 5.0v read: %.4f", adc_read);
     if ( (adc_read <= PS_TEST_5V_HIGH) && (adc_read >= PS_TEST_5V_LOW) ) {
-        printf("\tPass!\n\r");
+        printf("\tPass!\r\n");
     } else {
-        printf("\tFail!\n\r");
+        printf("\tFail!\r\n");
         err = 1;
     }
 
@@ -218,16 +218,16 @@ int feram_test( void )
     uint8_t test_pattern[256];
 
     /* Fill test pattern array with random numbers */
-    printf("FeRAM Random pattern:\n\r");
+    printf("FeRAM Random pattern:\r\n");
     for (byte = 0; byte < sizeof(test_pattern); byte++) {
         if ((byte%8) == 0) {
-            printf("\n\r[RANDOM]");
+            printf("\r\n[RANDOM]");
         }
         test_pattern[byte] = random()%256;
         printf("%02X ", test_pattern[byte]);
     }
 
-    printf("\n\rStarting FeRAM test\n\r");
+    printf("\r\nStarting FeRAM test\r\n");
 
     printf("Writing test pattern...");
     /* Write test pattern on the FeRAM */
@@ -240,14 +240,14 @@ int feram_test( void )
         }
     }
     if (err_write == 0) {
-        printf("\tPass!\n\r");
+        printf("\tPass!\r\n");
         err = 0;
     } else {
-        printf("\tFail!\n\r");
+        printf("\tFail!\r\n");
         return 1;
     }
 
-    printf("Reading FeRAM pattern...\n\r");
+    printf("Reading FeRAM pattern...\r\n");
     /* Check test pattern */
     for (page = 0; page <= 7; page++) {
         for (byte = 0; byte <= 0xFF; byte++) {
@@ -263,10 +263,10 @@ int feram_test( void )
     }
     printf("[FERAM]");
     if (err_read == 0) {
-        printf("\tPass!\n\r");
+        printf("\tPass!\r\n");
         err = 0;
     } else {
-        printf("\tFail!\n\r");
+        printf("\tFail!\r\n");
         return 1;
     }
 
@@ -310,7 +310,7 @@ uint8_t feram_store_eth_info( void )
     }
     led1 = 1;
 
-    printf("\n\rInsert IP:\r\n");
+    printf("\r\nInsert IP:\r\n");
     scanf("%hhd.%hhd.%hhd.%hhd",&ip[0],&ip[1],&ip[2],&ip[3]);
     for (uint8_t t = 0; t < 4; t++) {
         printf("%d", ip[t]);
@@ -320,7 +320,7 @@ uint8_t feram_store_eth_info( void )
     }
     led2 = 1;
 
-    printf("\n\rInsert Mask:\r\n");
+    printf("\r\nInsert Mask:\r\n");
     scanf("%hhd.%hhd.%hhd.%hhd",&mask[0],&mask[1],&mask[2],&mask[3]);
     for (uint8_t t = 0; t < 4; t++) {
         printf("%d", mask[t]);
@@ -330,7 +330,7 @@ uint8_t feram_store_eth_info( void )
     }
     led3 = 1;
 
-    printf("\n\rInsert Gateway:\r\n");
+    printf("\r\nInsert Gateway:\r\n");
     scanf("%hhd.%hhd.%hhd.%hhd",&gateway[0],&gateway[1],&gateway[2],&gateway[3]);
     for (uint8_t t = 0; t < 4; t++) {
         printf("%d", gateway[t]);
@@ -339,9 +339,9 @@ uint8_t feram_store_eth_info( void )
         }
     }
     led4 = 1;
-    printf("\n\r");
+    printf("\r\n");
 
-    printf("\n\r Writing info to FeRAM...\n\r");
+    printf("\r\n Writing info to FeRAM...\r\n");
 
     for (byte = 0x0; byte < sizeof(mac); byte++) {
         addr = (slave_id << 4);
@@ -399,7 +399,7 @@ int leds_test( void )
         delete led;
     }
 
-    printf("Starting LEDs test...\n\r");
+    printf("Starting LEDs test...\r\n");
 
     for( uint8_t t = 0; t < sizeof(leds)/sizeof(leds[0]); t++) {
         led = new DigitalOut(leds[t]);
@@ -410,9 +410,9 @@ int leds_test( void )
 
         printf("[LED] %d: %.4f", t+1, ldr_read);
         if (ldr_read < LDR_LIGHT_THRESHOLD) {
-            printf("\tPass!\n\r");
+            printf("\tPass!\r\n");
         } else {
-            printf("\tFail!\n\r");
+            printf("\tFail!\r\n");
             err = 1;
         }
 
@@ -446,9 +446,9 @@ int ethernet_test( void )
     uint8_t t = 0;
     uint8_t recv_sz = 0;
 
-    printf("\n\rStarting Ethernet test\n\r");
+    printf("\r\nStarting Ethernet test\r\n");
 
-    printf("Configuring 50MHz PLL\n\r");
+    printf("Configuring 50MHz PLL\r\n");
     pll_cfg();
 
     /* Read addresses from UART */
@@ -462,7 +462,7 @@ int ethernet_test( void )
     }
     led1 = 1;
 
-    printf("\n\rInsert IP:\r\n");
+    printf("\r\nInsert IP:\r\n");
     scanf("%hhd.%hhd.%hhd.%hhd",&ip[0],&ip[1],&ip[2],&ip[3]);
     for (uint8_t t = 0; t < 4; t++) {
         printf("%d", ip[t]);
@@ -472,7 +472,7 @@ int ethernet_test( void )
     }
     led2 = 1;
 
-    printf("\n\rInsert Mask:\r\n");
+    printf("\r\nInsert Mask:\r\n");
     scanf("%hhd.%hhd.%hhd.%hhd",&mask[0],&mask[1],&mask[2],&mask[3]);
     for (uint8_t t = 0; t < 4; t++) {
         printf("%d", mask[t]);
@@ -482,7 +482,7 @@ int ethernet_test( void )
     }
     led3 = 1;
 
-    printf("\n\rInsert Gateway:\r\n");
+    printf("\r\nInsert Gateway:\r\n");
     scanf("%hhd.%hhd.%hhd.%hhd",&gateway[0],&gateway[1],&gateway[2],&gateway[3]);
     for (uint8_t t = 0; t < 4; t++) {
         printf("%d", gateway[t]);
@@ -491,9 +491,9 @@ int ethernet_test( void )
         }
     }
     led4 = 1;
-    printf("\n\r");
+    printf("\r\n");
 
-    printf("Initializing ETH stack...\n\r");
+    printf("Initializing ETH stack...\r\n");
 
     char ip_str[16], gateway_str[16], mask_str[16];
 
@@ -510,15 +510,15 @@ int ethernet_test( void )
     } while ( (err != 0) && (t <= 5) );
 
     if ( err == 0 ) {
-        printf("\tPass!\n\r");
+        printf("\tPass!\r\n");
     } else {
-        printf("\tFail!\n\r");
+        printf("\tFail!\r\n");
         return 1;
     }
 
-    printf("IP: %s\n\r", net.get_ip_address());
-    printf("RFFE MAC Address: %s\n\r", net.get_mac_address());
-    printf("Listening on port: %d\n\r", SERVER_PORT);
+    printf("IP: %s\r\n", net.get_ip_address());
+    printf("RFFE MAC Address: %s\r\n", net.get_mac_address());
+    printf("Listening on port: %d\r\n", SERVER_PORT);
 
     /* Bind tcp server */
     server.open(&net);
@@ -533,17 +533,17 @@ int ethernet_test( void )
     if (recv_sz > 0 ) {
         printf("Received: \"%s\"", buf);
         if( strcmp((char *)msg, (char *)buf) == 0 ) {
-            printf("\tPass!\n\r");
+            printf("\tPass!\r\n");
             err = 0;
         } else {
             /* Add terminating char to prevent gargabe print */
             buf[9] = 0;
-            printf("\tFail!\n\r");
+            printf("\tFail!\r\n");
             /* clear buffer */
             memset(buf, 0, sizeof(buf));
         }
     } else {
-        printf("Client Disconnected!\n");
+        printf("Client Disconnected!\r\n");
     }
 
     client.close();
@@ -571,8 +571,8 @@ int main( void )
     led3 = 0;
     led4 = 0;
 
-    printf("Starting rffe-uc tests!\n\r");
-    printf("Send the char 's' to start the tests or 'r' to store the deploy information in the FERAM!\n\r");
+    printf("Starting rffe-uc tests!\r\n");
+    printf("Send the char 's' to start the tests or 'r' to store the deploy information in the FERAM!\r\n");
 
     int err = 0;
 
@@ -592,16 +592,16 @@ int main( void )
         err += feram_store_eth_info();
     }
 
-    printf("\n\r");
+    printf("\r\n");
 
     if (err == 0) {
-        printf("Board tests passed!\n\r");
+        printf("Board tests passed!\r\n");
         blink.attach(&blink_callback, 0.5);
     } else {
-        printf("Board tests failed!\n\r");
+        printf("Board tests failed!\r\n");
     }
 
-    printf("\n\rEnd of tests!\n\r");
+    printf("\r\nEnd of tests!\r\n");
 
     while(1);
 }
